@@ -112,6 +112,62 @@ serverless dev
 | DELETE | `/score` | Delete a score |
 | DELETE | `/scores` | Clear all scores |
 
+## How-To: Rotate the Bot API Token
+
+If the Telegram bot token is compromised or needs to be cycled, follow all three steps — skipping any one of them will break the bot.
+
+### 1. Get a new token from BotFather
+
+Open Telegram and message [@BotFather](https://t.me/BotFather):
+
+```
+/mybots
+→ select your bot
+→ API Token → Revoke current token
+```
+
+Copy the new token.
+
+### 2. Update the environment and redeploy
+
+Set the new token in your `.env` file:
+
+```
+BOT_TOKEN=<new-token>
+```
+
+Then deploy so the Lambda picks up the new value:
+
+```bash
+# Dev
+serverless deploy
+
+# Production
+serverless deploy --stage production
+```
+
+### 3. Re-register the webhook with Telegram
+
+Telegram's servers still have the old token and will reject requests signed with it. You need to tell Telegram where to send messages for the new bot token. Run this `curl` (replace placeholders):
+
+```bash
+curl -X POST "https://api.telegram.org/bot<NEW_TOKEN>/setWebhook" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://<your-api-gateway-url>/sendMessage"}'
+```
+
+You can find your API Gateway URL in the Serverless deploy output, or in the AWS console under API Gateway. A successful response looks like:
+
+```json
+{"ok":true,"result":true,"description":"Webhook was set"}
+```
+
+To verify the webhook is registered correctly:
+
+```bash
+curl "https://api.telegram.org/bot<NEW_TOKEN>/getWebhookInfo"
+```
+
 ## Architecture
 
 - **Telegram Webhook**: Messages hit `/sendMessage`, parsed for Wordle scores
