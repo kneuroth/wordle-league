@@ -1,6 +1,4 @@
-import { MATRIX_PNG_PODIUM_MAP, MATRIX_PNG_SCORE_MAP } from "@constants/png-maps";
-import { CHRISTMAS_PODIUM_SVG_MAP } from "@constants/svg-maps";
-import { CHRISTMAS_PODIUM_TEMPLATE } from "@constants/templates/podiums/christmas-podium";
+import { DEFAULT_PODIUM_SVG_MAP, DEFAULT_SVG_SCORE_MAP } from "@constants/svg-maps";
 import { MATRIX_SCOREBOARD_TEMPLATE } from "@constants/templates/scoreboards/matrix-scoreboard";
 import { neon } from "@neondatabase/serverless";
 import { lambdaLaunchArgs } from "@utils/browser";
@@ -17,7 +15,8 @@ import fs from 'fs/promises';
 import os from 'os';
 import puppeteer from "puppeteer-core";
 import { scoreTable } from "../db/schema";
-import { MATRIX_PODIUM_TEMPLATE } from "@constants/templates/podiums/matrix-podium";
+import { SPONGEBOB_PODIUM_TEMPLATE } from "@constants/templates/podiums/spongebob-podium";
+import { SPONGEBOB_SCOREBOARD_TEMPLATE } from "@constants/templates/scoreboards/spongebob-scoreboard";
 
 const fss = require('fs');
 const path = require('path');
@@ -52,9 +51,9 @@ export async function sendScoreboards() {
         // If start of month, generate podiums instead
         if (easternToday.getDate() === 1) {
           const podiums = convertScoreboardsToPoduims(scoreboards);
-          pathResults = await Promise.all(podiums.map(pd => createHTMLFile(createHtmlPodium(pd, MATRIX_PODIUM_TEMPLATE, MATRIX_PNG_PODIUM_MAP), pd.chat_id)));
+          pathResults = await Promise.all(podiums.map(pd => createHTMLFile(createHtmlPodium(pd, SPONGEBOB_PODIUM_TEMPLATE, DEFAULT_PODIUM_SVG_MAP), pd.chat_id)));
         } else {
-          pathResults = await Promise.all(scoreboards.map(sb => createHTMLFile(createHtmlScoreboard(sb, MATRIX_SCOREBOARD_TEMPLATE, MATRIX_PNG_SCORE_MAP), sb.chat_id)));
+          pathResults = await Promise.all(scoreboards.map(sb => createHTMLFile(createHtmlScoreboard(sb, SPONGEBOB_SCOREBOARD_TEMPLATE, DEFAULT_SVG_SCORE_MAP), sb.chat_id)));
         }
         const BOT_TOKEN = process.env.BOT_TOKEN!;
 

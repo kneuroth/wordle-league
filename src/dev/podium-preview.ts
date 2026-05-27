@@ -6,11 +6,12 @@ import { CHRISTMAS_PODIUM_SVG_MAP, DEFAULT_PODIUM_SVG_MAP } from "../constants/s
 import { CHRISTMAS_PODIUM_TEMPLATE } from "../constants/templates/podiums/christmas-podium";
 import { MATRIX_PODIUM_TEMPLATE } from "../constants/templates/podiums/matrix-podium";
 import { MATRIX_PNG_PODIUM_MAP } from "../constants/png-maps";
+import { SPONGEBOB_PODIUM_TEMPLATE } from "../constants/templates/podiums/spongebob-podium";
 
 async function main() {
 
-  const SVG_MAP = MATRIX_PNG_PODIUM_MAP;
-  const TEMPLATE = MATRIX_PODIUM_TEMPLATE;
+  const SVG_MAP = DEFAULT_PODIUM_SVG_MAP;
+  const TEMPLATE = SPONGEBOB_PODIUM_TEMPLATE;
 
   const podiumContext: PodiumContext = {
     players: [

@@ -1,17 +1,15 @@
-import { CHRISTMAS_SCOREBOARD_TEMPLATE } from "../constants/templates/scoreboards/christmas-scoreboard";
-import { DEFAULT_SCOREBOARD_TEMPLATE } from "../constants/templates/scoreboards/default-scoreboard";
 import { MATRIX_PNG_SCORE_MAP } from "../constants/png-maps";
 import { ScoreboardContext } from "@model/Context";
 import { promises as fs } from "fs";
 import Handlebars from "handlebars";
 import { ARROW_DOWN_SVG, ARROW_UP_SVG } from "../constants/svgs";
-import { MATRIX_SCOREBOARD_TEMPLATE } from "../constants/templates/scoreboards/matrix-scoreboard";
-import { MATRIX_SCOREBOARD_AI_TEMPLATE } from "../constants/templates/scoreboards/matrix-scoreboard-ai";
+import { SPONGEBOB_SCOREBOARD_TEMPLATE } from "../constants/templates/scoreboards/spongebob-scoreboard";
+import { DEFAULT_SVG_SCORE_MAP } from "../constants/svg-maps";
 
 async function main() {
 
-  const SVG_MAP = MATRIX_PNG_SCORE_MAP;
-  const TEMPLATE = MATRIX_SCOREBOARD_TEMPLATE;
+  const SVG_MAP = DEFAULT_SVG_SCORE_MAP;
+  const TEMPLATE = SPONGEBOB_SCOREBOARD_TEMPLATE;
 
   const scoreboardContext: ScoreboardContext = {
     players: [
