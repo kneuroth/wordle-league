@@ -3,15 +3,16 @@ import { ScoreboardContext } from "@model/Context";
 import { promises as fs } from "fs";
 import Handlebars from "handlebars";
 import { ARROW_DOWN_SVG, ARROW_UP_SVG } from "../constants/svgs";
-import { SPONGEBOB_SCOREBOARD_TEMPLATE } from "../constants/templates/scoreboards/spongebob-scoreboard";
+import { GLASS_SCOREBOARD_TEMPLATE } from "../constants/templates/scoreboards/glass-scoreboard";
 import { DEFAULT_SVG_SCORE_MAP } from "../constants/svg-maps";
 
 async function main() {
 
   const SVG_MAP = DEFAULT_SVG_SCORE_MAP;
-  const TEMPLATE = SPONGEBOB_SCOREBOARD_TEMPLATE;
+  const TEMPLATE = GLASS_SCOREBOARD_TEMPLATE;
 
   const scoreboardContext: ScoreboardContext = {
+    period: "November 2026",
     players: [
 
       {

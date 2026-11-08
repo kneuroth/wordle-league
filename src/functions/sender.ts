@@ -15,8 +15,8 @@ import fs from 'fs/promises';
 import os from 'os';
 import puppeteer from "puppeteer-core";
 import { scoreTable } from "../db/schema";
-import { SPONGEBOB_PODIUM_TEMPLATE } from "@constants/templates/podiums/spongebob-podium";
-import { SPONGEBOB_SCOREBOARD_TEMPLATE } from "@constants/templates/scoreboards/spongebob-scoreboard";
+import { GLASS_PODIUM_TEMPLATE } from "@constants/templates/podiums/glass-podium";
+import { GLASS_SCOREBOARD_TEMPLATE } from "@constants/templates/scoreboards/glass-scoreboard";
 
 const fss = require('fs');
 const path = require('path');
@@ -51,9 +51,9 @@ export async function sendScoreboards() {
         // If start of month, generate podiums instead
         if (easternToday.getDate() === 1) {
           const podiums = convertScoreboardsToPoduims(scoreboards);
-          pathResults = await Promise.all(podiums.map(pd => createHTMLFile(createHtmlPodium(pd, SPONGEBOB_PODIUM_TEMPLATE, DEFAULT_PODIUM_SVG_MAP), pd.chat_id)));
+          pathResults = await Promise.all(podiums.map(pd => createHTMLFile(createHtmlPodium(pd, GLASS_PODIUM_TEMPLATE, DEFAULT_PODIUM_SVG_MAP), pd.chat_id)));
         } else {
-          pathResults = await Promise.all(scoreboards.map(sb => createHTMLFile(createHtmlScoreboard(sb, SPONGEBOB_SCOREBOARD_TEMPLATE, DEFAULT_SVG_SCORE_MAP), sb.chat_id)));
+          pathResults = await Promise.all(scoreboards.map(sb => createHTMLFile(createHtmlScoreboard(sb, GLASS_SCOREBOARD_TEMPLATE, DEFAULT_SVG_SCORE_MAP), sb.chat_id)));
         }
         const BOT_TOKEN = process.env.BOT_TOKEN!;
 

@@ -1,0 +1,353 @@
+<!--
+  Glass podium: the month's final standings, posted on the 1st. The companion
+  to glass-scoreboard.hbs, the same "Embossed Glow" language from kneuroth-ui
+  (../kneuroth-ui/DESIGN.md) translated for a static PNG:
+
+  - Frosted glass over a lit, low-key ground of cube-colour blooms.
+  - Names are sweep links at rest: letters breathing white→blue, a blue halo.
+    The player's own colour lives on the numbers.
+  - The winner's pillar is the page's one lifted moment: the cube ring
+    (white + two cube colours) glowing behind it, the only place it appears.
+    It's static on purpose; see the note on .spot.first .pillar.
+  - Mono, lower case, nothing heavier than 600. No hover, focus or
+    transitions: this becomes a screenshot. Ambient animations are kept for
+    live previews only.
+  - JetBrains Mono comes from Google Fonts, since Lambda's Chromium has no
+    system mono fonts.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  :root {
+    --sweep-base: rgb(165 197 222);
+    --frenchgrey: #bbb9be;
+    --warm: rgb(163 151 141);
+    --ground: rgb(10 5 6);
+  }
+
+  /* Registered so the percentage interpolates as it animates. */
+  @property --breathe {
+    syntax: '<percentage>';
+    initial-value: 80%;
+    inherits: true;
+  }
+
+  @keyframes breathe {
+    0%, 100% { --breathe: 100%; }
+    50% { --breathe: 25%; }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  p, h1 { margin: 0; }
+
+  body {
+    width: 1200px;
+    background: var(--ground);
+    color: var(--warm);
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo,
+      Consolas, 'Liberation Mono', monospace;
+    font-size: 26px;
+    text-transform: lowercase;
+  }
+
+  /* The page box clips the blooms. overflow on <body> would propagate to the
+     viewport instead, and a full-page screenshot would grow to fit them. */
+  .page {
+    position: relative;
+    overflow: hidden;
+    padding: 56px 52px 60px;
+  }
+
+  .ground {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .bloom {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+  }
+  .bloom.orange { width: 520px; height: 520px; left: -160px; top: -8%;    background: rgb(255 88 0 / 0.2); }
+  .bloom.blue   { width: 640px; height: 640px; right: -200px; top: 10%;   background: rgb(0 81 186 / 0.3); }
+  .bloom.green  { width: 480px; height: 480px; left: 22%; top: 55%;       background: rgb(0 155 72 / 0.16); }
+  .bloom.red    { width: 520px; height: 520px; right: 2%; bottom: -10%;   background: rgb(196 30 58 / 0.18); }
+  .bloom.white  { width: 420px; height: 420px; left: 34%; top: 2%;        background: rgb(255 255 255 / 0.09); }
+  .bloom.blue2  { width: 460px; height: 460px; left: -140px; bottom: -8%; background: rgb(0 81 186 / 0.2); }
+
+  /* ── The panel (GlassPanel, floating) ──────────────────────────────────── */
+  .glass-panel {
+    position: relative;
+    z-index: 1;
+    padding: 40px 40px 44px;
+    border-radius: 1.5rem;
+    background: rgb(255 255 255 / 0.12);
+    -webkit-backdrop-filter: blur(18px) saturate(1.15);
+    backdrop-filter: blur(18px) saturate(1.15);
+  }
+  .glass-panel-edge {
+    position: absolute;
+    inset: -9px;
+    z-index: -1;
+    border-radius: calc(1.5rem + 8px);
+    border: 2px solid
+      color-mix(in srgb, rgb(255 255 255 / 0.6), rgb(165 197 222 / 0.6) calc(100% - var(--breathe)));
+    box-shadow:
+      0 10px 40px rgb(0 0 0 / 0.18),
+      0 0 12px color-mix(in srgb, transparent, rgb(120 165 215 / 0.7) calc(100% - var(--breathe)));
+    animation: breathe 4s ease-in-out infinite;
+  }
+
+  .title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 0 4px 34px;
+  }
+  .title h1 {
+    font-size: 40px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--frenchgrey);
+  }
+  .title p {
+    font-size: 20px;
+    color: rgb(187 185 190 / 0.6);
+    letter-spacing: 0.08em;
+  }
+
+  /* ── Shared bits ───────────────────────────────────────────────────────── */
+  /* The sweep link at rest. The halo sits on a wrapper (.swept) so the
+     ellipsis clip on the letters can't cut it off. */
+  .swept {
+    min-width: 0;
+    max-width: 100%;
+    filter: drop-shadow(0 0 8px rgb(130 175 225 / 0.45));
+  }
+  .name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    background-image: linear-gradient(180deg, #ffffff, var(--sweep-base) var(--breathe));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: breathe 2.5s ease-in-out infinite;
+    animation-delay: calc(var(--i, 0) * -0.7s);
+  }
+
+  /* A number in the player's colour, lifted with a little white so dark
+     colours still read on dark glass, glowing faintly in it. */
+  .player-num {
+    font-weight: 600;
+    color: color-mix(in srgb, var(--player) 70%, #ffffff);
+    text-shadow: 0 0 12px color-mix(in srgb, var(--player) 55%, transparent);
+  }
+
+  /* ── The podium ────────────────────────────────────────────────────────── */
+  .podium {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    align-items: end;
+    gap: 26px;
+    margin: 0 10px 40px;
+  }
+
+  .spot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  /* Who stands on it: emoji, name, total. */
+  .who {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+  }
+  .who img, .who svg { width: 56px; height: 56px; display: block; }
+  .who .name { font-size: 30px; text-align: center; }
+  .who .player-num { font-size: 26px; }
+
+  /* The pillar: a slab of dark glass, its position set in it. */
+  .pillar {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 22px;
+    border-radius: 1rem 1rem 0.5rem 0.5rem;
+    background: linear-gradient(180deg, rgb(8 4 5 / 0.4), rgb(8 4 5 / 0.62));
+    border: 1px solid rgb(255 255 255 / 0.14);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.12),
+      0 10px 30px rgb(0 0 0 / 0.25);
+  }
+  .pillar .rank {
+    font-size: 64px;
+    font-weight: 600;
+    color: var(--frenchgrey);
+    text-shadow: 0 1px 0 rgb(255 255 255 / 0.12), 0 1px 2px rgb(0 0 0 / 0.5);
+  }
+  .spot.first  .pillar { height: 260px; }
+  .spot.second .pillar { height: 190px; }
+  .spot.third  .pillar { height: 140px; }
+
+  /* The winner: the one lifted moment. The cube ring glows behind the pillar
+     (on a ::before so the pillar's own glass stays on top), the halo on the
+     name lifts to its hover strength, and the rank goes white.
+
+     The ring is deliberately STATIC: one cube triad (white + orange + blue)
+     at a fixed angle, not the revolving glowSpin/glowCube. An animated,
+     blurred layer here made Chromium's full-page screenshot come out 54px
+     short, cutting off the bottom of the panel. The PNG is a single frame
+     anyway, so nothing is lost. Don't re-animate it without re-checking the
+     rendered PNG's height against the page's. */
+  .spot.first .pillar {
+    z-index: 0;
+    border-color: rgb(255 255 255 / 0.26);
+  }
+  .spot.first .pillar::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    z-index: -1;
+    border-radius: inherit;
+    background: conic-gradient(from 200deg, #ffffff, #ff5800, #0051ba, #ffffff);
+    filter: blur(20px);
+    opacity: 0.75;
+  }
+  /* The ring would show through the slab's translucent fill, so the slab gets
+     its own opaque-enough backing on a second layer above the ring. */
+  .spot.first .pillar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgb(20 14 16 / 0.92), rgb(10 6 7 / 0.96));
+  }
+  .spot.first .pillar .rank { color: #fff; }
+  .spot.first .swept { filter: drop-shadow(0 0 13px rgb(150 190 235 / 0.8)); }
+  .spot.first .who .name { font-size: 36px; }
+  .spot.first .who img, .spot.first .who svg { width: 68px; height: 68px; }
+
+  /* ── The full standings ────────────────────────────────────────────────── */
+  .rows {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr) auto 110px;
+    align-items: center;
+    gap: 18px;
+    padding: 12px 22px;
+    border-radius: 1rem;
+    background: rgb(8 4 5 / 0.42);
+    border: 1px solid rgb(255 255 255 / 0.08);
+  }
+  .row .pos {
+    font-size: 30px;
+    font-weight: 600;
+    color: var(--frenchgrey);
+  }
+  .row .name { font-size: 28px; }
+  .row .stat {
+    font-size: 20px;
+    color: rgb(187 185 190 / 0.65);
+    white-space: nowrap;
+  }
+  .row .player-num {
+    font-size: 28px;
+    text-align: right;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .name, .glass-panel-edge { animation: none; }
+  }
+</style>
+
+<body>
+<div class="page">
+  <div class="ground" aria-hidden="true">
+    <div class="bloom orange"></div>
+    <div class="bloom blue"></div>
+    <div class="bloom white"></div>
+    <div class="bloom green"></div>
+    <div class="bloom red"></div>
+    <div class="bloom blue2"></div>
+  </div>
+
+  <div class="glass-panel">
+    <div class="glass-panel-edge" aria-hidden="true"></div>
+
+    <div class="title">
+      <h1>Wordle League</h1>
+      {{#if period}}<p>{{period}}</p>{{/if}}
+    </div>
+
+    <div class="podium">
+      {{#with players.[1]}}
+        <div class="spot second" style="--player: {{color}}; --i: 1;">
+          <div class="who">
+            {{{emoji}}}
+            <div class="swept"><p class="name">{{name}}</p></div>
+            <p class="player-num">{{totalScore}}</p>
+          </div>
+          <div class="pillar"><span class="rank">2</span></div>
+        </div>
+      {{/with}}
+
+      {{#with players.[0]}}
+        <div class="spot first" style="--player: {{color}}; --i: 0;">
+          <div class="who">
+            {{{emoji}}}
+            <div class="swept"><p class="name">{{name}}</p></div>
+            <p class="player-num">{{totalScore}}</p>
+          </div>
+          <div class="pillar"><span class="rank">1</span></div>
+        </div>
+      {{/with}}
+
+      {{#with players.[2]}}
+        <div class="spot third" style="--player: {{color}}; --i: 2;">
+          <div class="who">
+            {{{emoji}}}
+            <div class="swept"><p class="name">{{name}}</p></div>
+            <p class="player-num">{{totalScore}}</p>
+          </div>
+          <div class="pillar"><span class="rank">3</span></div>
+        </div>
+      {{/with}}
+    </div>
+
+    <div class="rows">
+      {{#each players}}
+        <div class="row" style="--player: {{color}}; --i: {{@index}};">
+          <span class="pos">{{position}}</span>
+          <div class="swept"><p class="name">{{name}}</p></div>
+          <span class="stat">{{stat}}</span>
+          <span class="player-num">{{totalScore}}</span>
+        </div>
+      {{/each}}
+    </div>
+  </div>
+</div>
+</body>

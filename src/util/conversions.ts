@@ -8,9 +8,19 @@ import { Podium } from "@model/Podium";
 import { generateStatForPlayer } from "./stats";
 import { ARROW_DOWN_SVG, ARROW_UP_SVG } from "@constants/svgs";
 
+/**
+ * "2026-11" → "November 2026". Built from the parts, not new Date('2026-11-01'), which
+ * parses as UTC midnight and lands on Oct 31 in any timezone west of UTC.
+ */
+export function formatYearMonth(yearMonth: string): string {
+  const [year, month] = yearMonth.split('-').map(Number);
+  return format(new Date(year, month - 1, 1), 'MMMM yyyy');
+}
+
 export function convertPodiumToContext(podium: Podium, svgMap: { [key: number]: string }): PodiumContext {
 
   return {
+    period: formatYearMonth(podium.yearMonth),
     players: podium.players
       .sort((playerA, playerB) => {
         const aTotalScore = Object.values(playerA.scores).reduce((a, b) => a + b, 0);
@@ -85,6 +95,7 @@ export function convertScoreboardToContext(scoreboard: Scoreboard, svgMap: { [ke
   }
 
   return {
+    period: formatYearMonth(yearMonth),
     players: scoreboard.players
       .sort((playerA, playerB) => {
         const aTotalScore = totalScoresMap[playerA.player_id];

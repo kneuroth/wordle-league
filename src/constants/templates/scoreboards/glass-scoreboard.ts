@@ -1,0 +1,306 @@
+// AUTO-GENERATED from glass-scoreboard.hbs - DO NOT EDIT DIRECTLY
+// Run 'npm run build:templates' to regenerate
+
+export const GLASS_SCOREBOARD_TEMPLATE = `<!--
+  Glass scoreboard: the "Embossed Glow" language from kneuroth-ui
+  (../kneuroth-ui/DESIGN.md), translated for a static PNG.
+
+  - Frosted glass over a lit ground: glass needs light behind it, so the page
+    is near-black with blurred cube-colour blooms for the frost to catch.
+  - Names wear the sweep-link look at rest: letters breathing white→blue with
+    a soft blue halo. The player's own colour lives on the numbers instead
+    (today's score and the month bar).
+  - One mono face, all lower case, nothing heavier than 600.
+  - Everything interactive (hover, focus, transitions, the sweep itself) is
+    dropped: this becomes a screenshot. The ambient breathe is kept for live
+    previews, offset per row with a negative delay (--i) so the captured
+    frame isn't identical row to row.
+  - Lambda's Chromium has no system mono fonts, so JetBrains Mono is loaded
+    from Google Fonts (the matrix templates do the same with Courier Prime).
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  /* ── Base (kneuroth.css) ───────────────────────────────────────────────── */
+  :root {
+    --sweep-base: rgb(165 197 222);
+    --frenchgrey: #bbb9be;
+    --warm: rgb(163 151 141);
+    --ground: rgb(10 5 6);
+  }
+
+  /* Registered so the percentage interpolates as it animates. */
+  @property --breathe {
+    syntax: '<percentage>';
+    initial-value: 80%;
+    inherits: true;
+  }
+
+  @keyframes breathe {
+    0%, 100% { --breathe: 100%; }
+    50% { --breathe: 25%; }
+  }
+
+  /* ── Page ──────────────────────────────────────────────────────────────── */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  p, h1, h3 { margin: 0; }
+
+  body {
+    width: 1200px;
+    background: var(--ground);
+    color: var(--warm);
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo,
+      Consolas, 'Liberation Mono', monospace;
+    font-size: 26px;
+    text-transform: lowercase;
+  }
+
+  /* The page box clips the blooms. overflow on <body> would propagate to the
+     viewport instead, and a full-page screenshot would grow to fit them. */
+  .page {
+    position: relative;
+    overflow: hidden;
+    padding: 56px 52px 60px;
+  }
+
+  /* The lit ground: big, soft, low-key cube-colour blooms, just enough light
+     for the frost to catch. Positions are percentages so they spread over
+     however many rows there are. */
+  .ground {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .bloom {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+  }
+  .bloom.orange { width: 520px; height: 520px; left: -160px; top: -8%;    background: rgb(255 88 0 / 0.2); }
+  .bloom.blue   { width: 640px; height: 640px; right: -200px; top: 12%;   background: rgb(0 81 186 / 0.3); }
+  .bloom.green  { width: 480px; height: 480px; left: 22%; top: 50%;       background: rgb(0 155 72 / 0.16); }
+  .bloom.red    { width: 520px; height: 520px; right: 2%; bottom: -10%;   background: rgb(196 30 58 / 0.18); }
+  .bloom.white  { width: 380px; height: 380px; left: 44%; top: 4%;        background: rgb(255 255 255 / 0.08); }
+  .bloom.blue2  { width: 460px; height: 460px; left: -140px; bottom: -8%; background: rgb(0 81 186 / 0.2); }
+
+  /* ── The panel (GlassPanel, floating) ──────────────────────────────────── */
+  .glass-panel {
+    position: relative;
+    z-index: 1;
+    padding: 40px 40px 44px;
+    border-radius: 1.5rem;
+    background: rgb(255 255 255 / 0.12);
+    -webkit-backdrop-filter: blur(18px) saturate(1.15);
+    backdrop-filter: blur(18px) saturate(1.15);
+  }
+  /* The edge stands 9px proud with no fill, so the gap is the clear strip. */
+  .glass-panel-edge {
+    position: absolute;
+    inset: -9px;
+    z-index: -1;
+    border-radius: calc(1.5rem + 8px);
+    border: 2px solid
+      color-mix(in srgb, rgb(255 255 255 / 0.6), rgb(165 197 222 / 0.6) calc(100% - var(--breathe)));
+    box-shadow:
+      0 10px 40px rgb(0 0 0 / 0.18),
+      0 0 12px color-mix(in srgb, transparent, rgb(120 165 215 / 0.7) calc(100% - var(--breathe)));
+    animation: breathe 4s ease-in-out infinite;
+  }
+
+  .title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 0 4px 30px;
+  }
+  .title h1 {
+    font-size: 40px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--frenchgrey);
+  }
+  .title p {
+    font-size: 20px;
+    color: rgb(187 185 190 / 0.6);
+    letter-spacing: 0.08em;
+  }
+
+  /* ── Rows ──────────────────────────────────────────────────────────────── */
+  .rows {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 112px 290px 158px 1fr;
+    align-items: center;
+    gap: 18px;
+    padding: 14px 20px;
+    border-radius: 1rem;
+    background: rgb(8 4 5 / 0.42);
+    border: 1px solid rgb(255 255 255 / 0.08);
+  }
+
+  .rank {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .pos {
+    min-width: 1.6em;
+    font-size: 38px;
+    font-weight: 600;
+    color: var(--frenchgrey);
+    text-shadow: 0 1px 0 rgb(255 255 255 / 0.12), 0 1px 2px rgb(0 0 0 / 0.5);
+  }
+  .delta img { width: 34px; height: 34px; display: block; }
+
+  /* The name: the sweep link at rest (glow-sweep.css). A top→bottom
+     white→pale-blue gradient clipped to the letters, its stop driven by the
+     breathe, with the steady blue halo. The halo is on the wrapper: a
+     drop-shadow on the clipped element itself would be cut by its
+     ellipsis overflow. */
+  .name-wrap {
+    min-width: 0;
+    padding: 4px 6px;
+    filter: drop-shadow(0 0 8px rgb(130 175 225 / 0.45));
+  }
+  .name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    background-image: linear-gradient(180deg, #ffffff, var(--sweep-base) var(--breathe));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: breathe 2.5s ease-in-out infinite;
+    animation-delay: calc(var(--i) * -0.7s);
+  }
+
+  /* Today: a small slab of dark glass holding the score and its emoji. */
+  .today {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 58px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: rgb(8 4 5 / 0.55);
+    border: 1px solid rgb(255 255 255 / 0.14);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
+    font-weight: 600;
+    color: var(--frenchgrey);
+  }
+  /* Today's score wears the player's colour, lifted with a little white so
+     dark colours (navy, deep purple) still read on the dark slab, plus a faint
+     glow in it. */
+  .today .latest {
+    color: color-mix(in srgb, var(--player) 70%, #ffffff);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--player) 55%, transparent);
+  }
+  .today img, .today svg { width: 36px; height: 36px; display: block; }
+
+  /* Month total: the player's colour is the meaning here, so the fill wears it
+     (like the about page's neon) and glows in it. */
+  .track {
+    position: relative;
+    height: 46px;
+    border-radius: 999px;
+    background: rgb(8 4 5 / 0.6);
+    border: 1px solid rgb(255 255 255 / 0.1);
+    box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.45);
+  }
+  .fill {
+    height: 100%;
+    min-width: 46px;
+    border-radius: 999px;
+    background: var(--player);
+    background-image: linear-gradient(180deg, rgb(255 255 255 / 0.28), rgb(255 255 255 / 0) 55%, rgb(0 0 0 / 0.18));
+    background-color: var(--player);
+    box-shadow:
+      0 0 18px color-mix(in srgb, var(--player) 65%, transparent),
+      inset 0 1px 0 rgb(255 255 255 / 0.35);
+  }
+  .total {
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 24px;
+    font-weight: 600;
+    color: #fff;
+    text-shadow: 0 1px 3px rgb(0 0 0 / 0.9), 0 0 10px rgb(0 0 0 / 0.6);
+  }
+
+  /* The leader: the one lifted moment. The halo at its hover strength, a lit
+     row edge. */
+  .row:first-child {
+    background: rgb(8 4 5 / 0.32);
+    border: 1px solid rgb(255 255 255 / 0.22);
+    box-shadow: 0 0 22px rgb(130 175 225 / 0.28);
+  }
+  .row:first-child .name-wrap { filter: drop-shadow(0 0 13px rgb(150 190 235 / 0.8)); }
+  .row:first-child .pos { color: #fff; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .name, .glass-panel-edge { animation: none; }
+  }
+</style>
+
+<body>
+<div class="page">
+  <div class="ground" aria-hidden="true">
+    <div class="bloom orange"></div>
+    <div class="bloom blue"></div>
+    <div class="bloom white"></div>
+    <div class="bloom green"></div>
+    <div class="bloom red"></div>
+    <div class="bloom blue2"></div>
+  </div>
+
+  <div class="glass-panel">
+    <div class="glass-panel-edge" aria-hidden="true"></div>
+
+    <div class="title">
+      <h1>Wordle League</h1>
+      {{#if period}}<p>{{period}}</p>{{/if}}
+    </div>
+
+    <div class="rows">
+      {{#each players}}
+        <div class="row" style="--i: {{@index}}; --player: {{color}};">
+          <div class="rank">
+            <span class="pos">{{{position}}}</span>
+            <span class="delta">{{{positionDelta}}}</span>
+          </div>
+          <div>
+            <div class="name-wrap"><h3 class="name">{{name}}</h3></div>
+          </div>
+          <div class="today">
+            <p class="latest">+{{latestScore}}</p>
+            {{{emoji}}}
+          </div>
+          <div class="track">
+            <div class="fill" style="width: {{scorePercentage}}%;"></div>
+            <p class="total">{{totalScore}}</p>
+          </div>
+        </div>
+      {{/each}}
+    </div>
+  </div>
+</div>
+</body>
+`;

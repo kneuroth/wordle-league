@@ -1,4 +1,6 @@
 export type ScoreboardContext = {
+  /** The month the scoreboard covers, e.g. "November 2026". */
+  period: string;
   players: {
     name: string;
     latestScore: number;
@@ -12,6 +14,8 @@ export type ScoreboardContext = {
 }
 
 export type PodiumContext = {
+  /** The month the podium covers, e.g. "November 2026". */
+  period: string;
   players: {
     name: string;
     emoji?: string;
