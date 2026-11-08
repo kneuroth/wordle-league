@@ -44,12 +44,21 @@ src/
 npm run build              # Compile templates + PNG icons (run before deploy)
 npm run dev:scoreboard     # Live preview scoreboard templates
 npm run dev:podium         # Live preview podium templates
+npm run deploy:dev         # Build + deploy to the dev stage
+npm run deploy:prod        # Build + deploy to the production stage
+STAGE=dev npx drizzle-kit migrate   # Migrations also require STAGE
 ```
+
+## Environments
+- Two stages: `dev` and `production`. A stage is **required** for every deploy; `serverless.yml` has no default and rejects unknown stage names.
+- Variables live in gitignored `.env.dev` / `.env.production` (template: `.env.example`). Serverless loads `.env.<stage>` from `--stage`; Local tooling (`drizzle.config.ts`, `drizzle/seed.ts`, `drizzle/clear.ts`) loads it from `STAGE` via `scripts/load-stage-env.ts`. Use that helper for any new script that reads env vars.
+- Don't create a plain `.env`. Serverless falls back to it when a stage file is missing, which defeats the guard.
+- Deploy with the global Serverless v4. Don't add a local `serverless` package or `serverless-plugin-typescript`: npm scripts would pick up that local copy instead.
 
 ## Key Patterns
 - Scoreboards and podiums are HTML templates rendered with Handlebars, then converted to PNG images via Puppeteer - **no hover states, transitions, or interactive CSS** (they're static screenshots)
 - PNG icons in `templates/icons/` are converted to base64 at build time - **icons must be square** (rendered at 32x32)
-- The `sendScoreboards` function runs daily at 5 AM UTC via cron
+- The `sendScoreboards` function runs daily at midnight America/New_York via EventBridge Scheduler (timezone-aware, so DST is automatic; don't convert it to a UTC cron). It runs in every stage, dev included
 - Telegram bot receives messages at `/sendMessage` webhook endpoint
 - Chromium binaries are in a Lambda layer for image generation
 

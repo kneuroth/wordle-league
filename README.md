@@ -46,7 +46,7 @@ drizzle/
 - Node.js 20.x
 - npm
 - AWS CLI configured (for deployment)
-- `.env` file with `DATABASE_URL` and `BOT_TOKEN`
+- `.env.dev` and `.env.production` with `DATABASE_URL` and `BOT_TOKEN` (copy `.env.example`)
 
 ### Commands
 
@@ -63,11 +63,11 @@ npm run dev:scoreboard
 # Live preview podium templates
 npm run dev:podium
 
-# Seed database with test data
-npx tsx drizzle/seed.ts
+# Seed database with test data (STAGE is required)
+STAGE=dev npx tsx drizzle/seed.ts
 
-# Clear database
-npx tsx drizzle/clear.ts
+# Clear database (STAGE is required)
+STAGE=dev npx tsx drizzle/clear.ts
 ```
 
 ### Template Development
@@ -90,14 +90,14 @@ Icons are rendered at 32x32 pixels, so source images should be square.
 ## Deployment
 
 ```bash
-# Deploy to dev environment
-serverless deploy
+# Deploy to dev (loads .env.dev)
+npm run deploy:dev
 
-# Deploy to production
-serverless deploy --stage production
+# Deploy to production (loads .env.production)
+npm run deploy:prod
 
 # Run locally
-serverless dev
+serverless dev --stage dev
 ```
 
 ## API Endpoints
@@ -130,20 +130,17 @@ Copy the new token.
 
 ### 2. Update the environment and redeploy
 
-Set the new token in your `.env` file:
+Set the new token in the stage's env file (`.env.dev` or `.env.production`):
 
 ```
 BOT_TOKEN=<new-token>
 ```
 
-Then deploy so the Lambda picks up the new value:
+Then deploy that stage so the Lambda picks up the new value:
 
 ```bash
-# Dev
-serverless deploy
-
-# Production
-serverless deploy --stage production
+npm run deploy:dev
+npm run deploy:prod
 ```
 
 ### 3. Re-register the webhook with Telegram
@@ -171,7 +168,7 @@ curl "https://api.telegram.org/bot<NEW_TOKEN>/getWebhookInfo"
 ## Architecture
 
 - **Telegram Webhook**: Messages hit `/sendMessage`, parsed for Wordle scores
-- **Daily Cron**: `sendScoreboards` runs at 5 AM UTC, generating and posting scoreboard images
+- **Daily Cron**: `sendScoreboards` runs at midnight Eastern (America/New_York, DST-aware), generating and posting scoreboard images
 - **Image Generation**: Handlebars templates rendered via Puppeteer/Chromium Lambda layer
 - **Database**: Neon PostgreSQL stores scores, managed with Drizzle ORM
 

@@ -7,9 +7,19 @@ service: message-receiver
 configValidationMode: error
 useDotenv: true
 
+custom:
+  # Every deploy must name its stage explicitly (`--stage dev` or `--stage production`).
+  # There is deliberately no default: a bare `serverless deploy` fails instead of silently
+  # deploying somewhere. Variables for each stage are loaded from `.env.<stage>`.
+  allowedStages:
+    dev: true
+    production: true
+  stageGuard: ${self:custom.allowedStages.${opt:stage}}
+
 provider:
   name: aws
   runtime: nodejs22.x
+  stage: ${opt:stage}
   environment:
     DATABASE_URL: ${env:DATABASE_URL}
     BOT_TOKEN: ${env:BOT_TOKEN}
@@ -32,7 +42,14 @@ functions:
     timeout: 300 # 5 minutes
     memorySize: 3008 # 3 GB
     events:
-      - schedule: cron(0 4 * * ? *)
+      # Midnight Eastern, every day. Uses EventBridge Scheduler (not a classic rule) because
+      # only Scheduler supports a timezone, so DST is handled automatically. sender.ts computes
+      # "yesterday" in America/New_York, so this must fire just after Eastern midnight.
+      - schedule:
+          method: scheduler
+          rate:
+            - cron(0 0 * * ? *)
+          timezone: America/New_York
     layers:
       - arn:aws:lambda:us-east-1:960010173416:layer:chromiumBinaries:1
 

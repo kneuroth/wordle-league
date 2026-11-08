@@ -4,6 +4,8 @@
   "description": "",
   "scripts": {
     "build": "ts-node scripts/build-templates.ts && ts-node scripts/build-png-icons.ts",
+    "deploy:dev": "npm run build && serverless deploy --stage dev",
+    "deploy:prod": "npm run build && serverless deploy --stage production",
     "dev:scoreboard": "npm run build && concurrently \"nodemon --watch src/constants/templates --ext hbs --exec ts-node scripts/build-templates.ts\" \"nodemon --watch src/constants/templates/icons --ext png --exec ts-node scripts/build-png-icons.ts\" \"nodemon ./src/dev/scoreboard-preview.ts\"",
     "dev:podium": "npm run build && concurrently \"nodemon --watch src/constants/templates --ext hbs --exec ts-node scripts/build-templates.ts\" \"nodemon --watch src/constants/templates/icons --ext png --exec ts-node scripts/build-png-icons.ts\" \"nodemon ./src/dev/podium-preview.ts\""
   },
@@ -31,7 +33,6 @@
     "live-server": "^1.2.2",
     "nodemon": "^3.1.10",
     "prettier": "3.6.0",
-    "serverless-plugin-typescript": "^2.1.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }

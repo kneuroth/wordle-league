@@ -3,8 +3,8 @@ import { addDays, format, subDays } from "date-fns";
 import { createInsertSchema } from "drizzle-zod";
 import z from "zod/v4";
 import { scoreTable } from "../src/db/schema";
-import 'dotenv/config';
 import { SQL, Placeholder } from "drizzle-orm";
+import { loadStageEnv } from "../scripts/load-stage-env";
 
 const players = [
   { player_id: 1, player_name: "Kelly" },
@@ -21,7 +21,8 @@ const insertScoreSchema = createInsertSchema(scoreTable).extend({
 });
 
 async function main(daysAgo: number) {
-  console.log(daysAgo)
+  const stage = loadStageEnv();
+  console.log(`Seeding ${daysAgo} days of scores into ${stage}`);
   const db = drizzle(process.env.DATABASE_URL!);
 
   var dayScores: { date: string | SQL<unknown> | Placeholder<string, any>; player_id: number | SQL<unknown> | Placeholder<string, any>; chat_id: number | SQL<unknown> | Placeholder<string, any>; score: number | SQL<unknown> | Placeholder<string, any>; player_name: string | SQL<unknown> | Placeholder<string, any>; }[] = [];
